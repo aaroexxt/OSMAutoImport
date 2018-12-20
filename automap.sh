@@ -15,8 +15,8 @@ abort()
     exit 1;
 }
 
-if [[ $(id -u) -ne 0 ]]
-  then echo "Sorry, but it appears that you didn't run this script as root. Please run it as a root user!";
+if [[ ! $(id -u) -ne 0 ]]
+  then echo "Sorry, but it appears that you ran this script as root. Please run it as a regular user";
   exit 1;
 fi
 
@@ -43,29 +43,15 @@ cd $1;
 sudo mkdir brightConfig
 cd brightConfig
 
-#stop all servers
-#echo "Killing postgres processes...";
-
-#HOW TO KILL POSTGRES
-#sudo kill -kill $(sudo lsof -t -i:5432)
-
-#HOW TO CREATE OSM DATABASE (using psql):
-:'
+#create server via bash
+sudo -u $USER psql <<EOF
 create database osm;
 \connect osm;
 create extension postgis;
 create role root;
 alter role root with login;
 grant all privileges on database osm to root;
-quit;
-'
-#do it via bash
-psql -c "create database osm";
-psql -d osm -c "create extension postgis;";
-psql -d osm -c "create role root;";
-psql -d osm -c "alter role root with login;";
-psql -d osm -c "grant all privileges on database osm to root;";
-
+EOF
 
 echo "creating pgsql database from file at $2"
 echo "IF THIS FAILS, GO TO https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e"
@@ -81,9 +67,9 @@ cd $1/brightConfig/mapbox-osm-bright-*
 sudo mkdir shp
 cd shp
 sudo wget http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip
-sudo unzip simplified-land-polygons-complete-3857.zip -A -d $(pwd)
+sudo unzip simplified-land-polygons-complete-3857.zip -d $(pwd)
 sudo wget http://data.openstreetmapdata.com/land-polygons-split-3857.zip
-sudo unzip land-polygons-split-3857.zip -A -d $(pwd)
+sudo unzip land-polygons-split-3857.zip -d $(pwd)
 sudo mkdir ne_10m_populated_places;
 cd ne_10m_populated_places;
 sudo wget http://github.com/nvkelso/natural-earth-vector/raw/master/10m_cultural/ne_10m_populated_places.shp
@@ -101,7 +87,22 @@ sudo ./make.py #make and add
 echo "setup done";
 exit 0; #exit
 
+#stop all servers
+#echo "Killing postgres processes...";
 
+#HOW TO KILL POSTGRES
+#sudo kill -kill $(sudo lsof -t -i:5432)
+
+#HOW TO CREATE OSM DATABASE (using psql):
+:'
+create database osm;
+\connect osm;
+create extension postgis;
+create role root;
+alter role root with login;
+grant all privileges on database osm to root;
+quit;
+'
 
 
 sudo mkdir $1/brightConfig/statePBF
