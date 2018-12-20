@@ -49,7 +49,7 @@ cd brightConfig
 #HOW TO KILL POSTGRES
 #sudo kill -kill $(sudo lsof -t -i:5432)
 
-#HOW TO CREATE OSM DATABASE:
+#HOW TO CREATE OSM DATABASE (using psql):
 :'
 create database osm;
 \connect osm;
@@ -59,6 +59,12 @@ alter role root with login;
 grant all privileges on database osm to root;
 quit;
 '
+#do it via bash
+psql -c "create database osm";
+psql -d osm -c "create extension postgis;";
+psql -d osm -c "create role root;";
+psql -d osm -c "alter role root with login;";
+psql -d osm -c "grant all privileges on database osm to root;";
 
 
 echo "creating pgsql database from file at $2"
